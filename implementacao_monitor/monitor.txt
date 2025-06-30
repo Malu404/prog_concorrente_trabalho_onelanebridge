@@ -1,0 +1,42 @@
+1. Contadores:
+Eventos relacionados:
+A: Carro chega na ponte
+E: carro entra na ponte
+S: carro sai da ponte
+
+Contadores para organizar isso:
+aN: carros chegando do norte
+aS: carros chegando do sul
+eN: carros entrando na ponte que vieram do norte
+eS: carros entrando na ponte que vieram do sul
+sN: carros saindo da ponte que vieram do norte
+sS: carros saindo da ponte que vieram do sul
+
+3. Não entra na ponte carros vindo do norte e do sul ao mesmo tempo
+Nenhum carro entra antes de chegar na ponte(eN<=aN, eS<=aS e sN<= eN, sS<=eS)
+Quantidade atual de carros na ponte deve ser coerente: 
+(eN-sN)+(eS-sS) -> Quantos carros que chegaram que ainda não foram embora.
+carro_ponte >= 0 (nao tem carro negativo na ponte)
+
+4. Pré condição:
+Só posso aumentar o eN++ se tenho garantido que:
+carro_ponte == 0 || direcao_atual == NORTE 
+direcao_atual == 0 || direcao_atual == direcao (para garantir que estamos no turno certo da direcao)
+ponte infinita pois nao tem limite imposto pelo livro, limite so na lane mesmo(one lane bridge)
+entao montando o requerimento:
+(direcao_atual == 0 || direcao_atual == direcao ) AND (carro_ponte == 0 || direcao_atual == NORTE)
+entao no await fica (carro_ponte == 0 || direcao_atual == direcao)
+5.
+
+6. Tentando com mudança de variáveis: op com semáforos
+A mudança de variáveis serve para implementar semáforos binários e contadores simples.
+Nosso caso depende de 2 variáveis(carro na ponte, direção),fica difícil converter a solução, logo vamos usar:
+
+7.Solução por passagem de bastão
+Usando std::condition_variable como estamos fazendo: cada grupo espera seu turno. O ''bastão''(direção) só pode ser passado quando carro_ponte == 0 
+Isso está implementado com cv.notify_all() e o direcao_atual.
+
+8. Resumo:
+Eventos: chegada,entrada e saída da ponte
+Contadores: aN aS eN eS sN sS
+Damos preferência pela passagem de bastão pela estrutura do nosso problema, onde a direcao fica alternando entre 2 estados de direcao(norte,sul)
