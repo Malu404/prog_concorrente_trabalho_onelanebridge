@@ -17,24 +17,28 @@ private:
     std::condition_variable cv;
     int carro_ponte = 0;
     int direcao_atual = 0; // 0 = none, 1 = vem do norte, 2 = vem do sul
-    int aN = 0;
-    int aS = 0;
-    int eN = 0;
-    int eS = 0;
-    int sN = 0;
-    int sS = 0;
+    int aN = 0;//contador de chegadas do norte
+    int aS = 0;//contador de chegadas do sul
+    int eN = 0;// contador de entradas do norte
+    int eS = 0;// contador de entradas do sul
+    int sN = 0;// contador de saidas do norte
+    int sS = 0;// contador de saidas do sul
+    //o aN/aS sao estados iniciais dos carros
+    //o eN/eS sao estados intermediarios dos carros
+    //o sN/sS sao estados finais dos carros
 public:
     void arrive(int direcao, int id) {
+        //funcao da entrada do carro na ponte
         std::unique_lock<std::mutex> lock(mtx);
 
-        if (direcao == 1) { // Norte
+        if (direcao == 1) { // norte
             aN++;
             std::cout << "Carro " << id << " chegou do NORTE. Total aN: " << aN << "\n";
-        } else { // Sul
+        } else { // sul
             aS++;
             std::cout << "Carro " << id << " chegou do SUL. Total aS: " << aS << "\n";
         }
-        cv.wait(lock, [&]() {
+        cv.wait(lock, [&]() {//espera a ponte estar livre ou na direcao correta para passar o carro
             return carro_ponte == 0 || direcao_atual == direcao;
         });
 
