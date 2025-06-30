@@ -54,7 +54,7 @@ public:
                   << (direcao == 1 ? "NORTE" : "SUL") << "\n";
     }
 
-    void leave(int direcao, int id) {
+    void leave(int direcao, int id) {//funcao que sinaliza a saida do carro da ponte
         std::unique_lock<std::mutex> lock(mtx);
         if (direcao == 1){
             sN++;
@@ -67,10 +67,10 @@ public:
         std::cout << "Carro " << id << " saiu da ponte.\n";
         if (carro_ponte == 0) {
             direcao_atual = 0;
-            cv.notify_all(); // Permitir carros do lado oposto
+            cv.notify_all(); // se acabou o fluxo atual norte ou sul, sinaliza que a ponte esta livre para o outro fluxo
         }
     }
-    void print_info(){
+    void print_info(){//penca de prints com dados dos carros
         std::cout << "\nPrintando informacoes:\n";
         std::cout << "Total de carros que chegaram do NORTE: " << aN << "\n";
         std::cout << "Total de carros que chegaram do SUL: " << aS  << "\n";
@@ -84,7 +84,7 @@ public:
 
 OneLaneBridge ponte;
 
-void car_thread(int direcao, int id) {
+void car_thread(int direcao, int id) {//simulador de carros chegando e depois atravessando a ponte
     std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 1000)); // chegada aleatória
     ponte.arrive(direcao, id);
 
@@ -101,11 +101,11 @@ int main() {
     const int num_cars_norte = 5;
     const int num_cars_sul = 5;
 
-    // Cria carros vindo do norte
+    // coloca carros vindo do norte
     for (int i = 0; i < num_cars_norte; ++i)
         cars.emplace_back(car_thread, 1, 100 + i); // 1 = norte
 
-    // Cria carros vindo do sul
+    // coloca carros vindo do sul
     for (int i = 0; i < num_cars_sul; ++i)
         cars.emplace_back(car_thread, 2, 200 + i); // 2 = sul
 
