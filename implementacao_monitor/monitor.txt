@@ -12,6 +12,37 @@ eS: carros entrando na ponte que vieram do sul
 sN: carros saindo da ponte que vieram do norte
 sS: carros saindo da ponte que vieram do sul
 
+2. Esboço com contadores: 
+    void arrive(int direcao, int id) {
+        std::unique_lock<std::mutex> lock(mtx);
+
+        if (direcao == NORTE) aN++; else aS++;  // contador de chegada
+
+        cv.wait(lock, [&]() {
+            return carro_ponte == 0 || direcao_atual == direcao;
+        });
+
+        // Entrando na ponte
+        carro_ponte++;
+        if (direcao == NORTE) eN++; else eS++;  // contador de entrada
+        direcao_atual = direcao;
+
+        std::cout << "Carro " << id << " esta atravessando da direcao "
+                << (direcao == 1 ? "NORTE" : "SUL") << "\n";
+    }
+
+    void leave(int id, int direcao) {
+        std::unique_lock<std::mutex> lock(mtx);
+        carro_ponte--;
+        if (direcao == NORTE) sN++; else sS++;  // contador de saída
+
+        std::cout << "Carro " << id << " saiu da ponte.\n";
+        if (carro_ponte == 0) {
+            direcao_atual = 0;
+            cv.notify_all();
+        }
+    }
+
 3. Não entra na ponte carros vindo do norte e do sul ao mesmo tempo
 Nenhum carro entra antes de chegar na ponte(eN<=aN, eS<=aS e sN<= eN, sS<=eS)
 Quantidade atual de carros na ponte deve ser coerente: 
@@ -26,7 +57,39 @@ ponte infinita pois nao tem limite imposto pelo livro, limite so na lane mesmo(o
 entao montando o requerimento:
 (direcao_atual == 0 || direcao_atual == direcao ) AND (carro_ponte == 0 || direcao_atual == NORTE)
 entao no await fica (carro_ponte == 0 || direcao_atual == direcao)
-5.
+5.Grossa franularidade
+    void arrive(int direcao, int id) {
+        std::unique_lock<std::mutex> lock(mtx);
+
+        if (direcao == NORTE) aN++; else aS++;
+
+        cv.wait(lock, [&]() {
+            if (direcao == NORTE)
+                return (eS - sS == 0) && (eN < aN);
+            else
+                return (eN - sN == 0) && (eS < aS);
+        });
+
+        carro_ponte++;
+        direcao_atual = direcao;
+        if (direcao == NORTE) eN++; else eS++;
+
+        std::cout << "Carro " << id << " esta atravessando da direcao "
+                << (direcao == 1 ? "NORTE" : "SUL") << "\n";
+    }
+
+    void leave(int id, int direcao) {
+        std::unique_lock<std::mutex> lock(mtx);
+        carro_ponte--;
+        if (direcao == NORTE) sN++; else sS++;
+
+        std::cout << "Carro " << id << " saiu da ponte.\n";
+        if (carro_ponte == 0) {
+            direcao_atual = 0;
+            cv.notify_all();
+        }
+    }
+
 
 6. Tentando com mudança de variáveis: op com semáforos
 A mudança de variáveis serve para implementar semáforos binários e contadores simples.
